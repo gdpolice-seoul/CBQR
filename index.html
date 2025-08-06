@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>강동경찰서 메뉴</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root {
+      --primary:   #003B4F;
+      --secondary: #002B3F;
+      --accent:    #FFFFFF;
+      --card-bg:   #f9f9f9;
+      --card-text: #002B3F;
+      --shadow:    rgba(0,0,0,0.15);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; scroll-behavior:smooth; }
+    body {
+      background: var(--primary);
+      color: var(--accent);
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .site-header {
+      display:flex; align-items:center; justify-content:center; gap:16px;
+      background:var(--secondary); padding:16px; border-bottom:2px solid var(--accent);
+    }
+    .site-title { font-size:3.5rem; font-weight:700; }
+    .logo       { height:40px; }
+
+    /* Desktop: 메뉴와 서브메뉴 */
+    .main-menu, .submenu-container {
+      display:flex; justify-content:center; align-items:center;
+      gap:20px; flex-wrap:wrap; margin-top:5cm; padding: 0 5rem;
+    }
+    .main-menu button, .sub-btn, .nav-footer button {
+      background:transparent; border:2px solid var(--accent);
+      color:var(--accent); cursor:pointer;
+      transition:background .3s, opacity .3s;
+    }
+    .main-menu button { padding:20px 40px; font-size:32px; border-radius:16px; }
+    .sub-btn          { padding:16px 32px; font-size:28px; border-radius:12px; }
+
+    /* 콘텐츠 카드 */
+    .content-container { flex:1; padding:16px; text-align:center; }
+    .content-card {
+      background: var(--card-bg);
+      color: var(--card-text);
+      max-width:800px; margin:16px auto;
+      padding:24px; border-radius:16px;
+      box-shadow:0 4px 12px var(--shadow);
+      text-align:left;
+    }
+    .content-card h2 { font-size:2rem; margin-bottom:24px; }
+    .content-card p  { font-size:1.1rem; margin-bottom:16px; line-height:1.5; }
+    .content-card ul, .content-card ol {
+      padding-left:1.5rem; margin-bottom:16px;
+    }
+    .content-card li { margin-bottom:8px; }
+
+    /* 이전/홈 버튼 (컨텐츠 바로 아래) */
+    .nav-footer {
+      display:flex; justify-content:center; align-items:center;
+      gap:20px; flex-wrap:wrap;
+      margin:2rem 0;    /* 컨텐츠 끝난 뒤 적당한 간격 */
+    }
+    .nav-footer button {
+      padding:20px 40px; font-size:32px; border-radius:16px;
+      background:var(--secondary); border:none;
+    }
+    button:hover { background: var(--accent); color: var(--primary); }
+    .hidden { display:none; }
+
+    /* 자연스러운 모바일 레이아웃 */
+    @media screen and (max-width:768px) {
+      .site-title { font-size:2rem; }
+      .main-menu, .submenu-container {
+        flex-direction:column; align-items:stretch;
+        margin-top:2rem; padding:0 1rem;
+      }
+      .main-menu button, .sub-btn {
+        width:100%; margin:.5rem 0;
+        font-size:20px; padding:16px;
+      }
+      .nav-footer {
+        flex-direction:column; align-items:stretch;
+        padding:0 1rem 1rem;
+        position: static; /* sticky 제거 */
+        margin:1rem 0;
+      }
+      .nav-footer button {
+        width:100%; margin:.5rem 0;
+        font-size:20px; padding:16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <img src="logo.png" alt="로고" class="logo"/>
+    <h1 class="site-title">강동경찰서</h1>
+  </header>
+
+  <nav class="main-menu" id="mainMenu">
+    <button data-key="menu1">
+       <img src="car-accident.png" alt="고장 아이콘" class="btn-icon" /> 교통사고
+    </button>
+    <button data-key="menu2">
+       <img src="car_repair.png" alt="고장 아이콘" class="btn-icon" /> 차량이 고장 났어요
+    </button>
+    <button data-key="menu3">
+       <img src="gas_station.png" alt="고장 아이콘" class="btn-icon" /> 주유소 안내
+    </button>
+    <button data-key="menu7">
+       <img src="car-maintenance.png" alt="고장 아이콘" class="btn-icon" /> 차량 검사 업체
+    </button>
+    <button data-key="menu4">
+       <img src="car_wash.png" alt="고장 아이콘" class="btn-icon" /> 세차장 안내
+    </button>
+    <button data-key="menu5">
+       <img src="tools.png" alt="고장 아이콘" class="btn-icon" /> 각종 특장업체 안내
+    </button>
+    <button data-key="menu6">
+       <img src="electric-car.png" alt="고장 아이콘" class="btn-icon" /> 전기차량 운행 안내
+    </button>
+
+
+
+  </nav>
+
+  <section class="submenu-container hidden" id="submenuContainer"></section>
+  <section class="content-container" id="contentContainer"></section>
+
+  <!-- 이전/홈 버튼은 항상 컨텐츠 끝 바로 아래에 -->
+  <footer class="nav-footer hidden" id="navFooter">
+    <button id="backBtn">🔙 이전</button>
+    <button id="homeBtn">🏠 홈으로</button>
+  </footer>
+
+  <script>
+    const menuData = {
+      menu1:['보험 접수','견인이 필요할 때','공업사','공문 작성'],
+      menu2:['애니카랜드', '타이어업체'],
+      menu3:['S-Oil 주유소<br>(천호, 성내, 암사, 교통)', '오렌지 주유소<br>(그외 부서)'],
+      menu4:['간단한 외부 자동세차','실내까지 손세차'],
+      menu5:['경광등, 앰프업체', '112태블릿업체'],
+      menu6:['안전수칙 준수','화재발생 시','침수 시', '비상용 망치', '충전소 위치'],
+      menu7:['차량 정기·종합(법정)검사','차량 월간 점검']
+    };
+    const subMenuData = {
+      '경광등, 앰프업체':['24년 이전','25년']
+
+    };
+    const contentData = {
+      '안전수칙 준수': [
+        `<h2>안전수칙 준수 안내</h2>
+         <p>- 젖은 손으로 충전기 조작 금지</p>
+         <p>- 충전 중 커넥터 임의탈거 금지</p>`
+      ],
+      '화재발생 시': [
+        `<h2>화재발생 시 안내</h2>
+         <p>- 소규모 화재 시 소화기 사용 후 안전한 장소로 대피하여 🚒119로 신고</p>`
+      ],
+      '침수 시': [
+        `<h2>침수 시 안내</h2>
+         <p>- 시동을 끄고 안전한 장소로 대피</p>
+         <p>- 충전 배터리 직접 접촉 금지</p>`
+      ],
+      '비상용 망치': [
+        `<h2>비상용 망치 안내</h2>
+         <p>- 차량 내부에서 문이 열리지 않을 경우 비상용 망치를 이용하여 탈출</p>
+         <p>- 비상용 망치 위치 : 운전석 좌측 하단 비치</p>`
+      ],
+      '충전소 위치': [
+        `<h2>충전소 위치 안내</h2>
+         <p>- 무공해차 통합누리집(<a href="https://ev.or.kr/nportal/main.do" target="_blank">
+             ev.or.kr
+           </a>) 확인</p>`
+      ],
+      '견인이 필요할 때': [
+        `<h2>견인 업체 안내</h2>
+         <p>전화번호 : 1566-1228 (삼성화재 경찰차량 전용)</p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '공업사': [
+        `<h2>남영공업사(암사동) 안내</h2>
+         <p>업체명 : 남영공업사(암사동)</p>
+         <p>주소 : 서울 강동구 고덕로 62 (암사동)</p>
+         <p>전화번호 : 02-442-1054</p>
+         <p>
+           <a href="https://map.naver.com/p/search/%EB%82%A8%EC%98%81%EA%B3%B5%EC%97%85%EC%82%AC/place/2091577844?c=15.00,0,0,0,dh&placePath=/home?entry=bmp&from=map&fromPanelNum=2&timestamp=202508051357&locale=ko&svcName=map_pcv5&searchText=%EB%82%A8%EC%98%81%EA%B3%B5%EC%97%85%EC%82%AC" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>`,
+        `<h2>이용 시 유의사항</h2>
+         <p>1️⃣  보험접수(보험접수번호 필요)</p>
+         <p>2️⃣  입고 전 남영공업사와 일정 협의</p>
+         <p>3️⃣  공업사 입출고 시 정보화장비계 전화 통보</p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '보험 접수': [
+        `<h2>보험 접수 안내</h2>
+         <p>삼성화재와 계약되어 있어요</p>
+         <p>경찰차량 사고접수 연락처 : 1566-6881</p>
+         <p>경찰차량 담당자 연락처 : 070-7111-1478</p>`,
+        `<h2>이용 시 유의사항</h2>
+         <p>✅ 보험사 사고 접수 후 접수번호 부여되면 온나라 공문 작성 및 수리</p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '공문 작성': [
+        `<h2>공문 작성 안내</h2>
+         <p>온나라시스템에 접속하여 발생보고서를 작성하세요.</p>`,
+        `<h2>작성 시 유의사항</h2>
+         <p>✅ 보험접수번호를 반드시 기재해주세요</p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '애니카랜드': [
+        `<h2>차량 기본 정비 및 수리업체(애니카) 안내</h2>`,
+        `<h2>애니카 성내점</h2>
+         <p>주소 : 서울 강동구 강동대로53길 9 (성내동)</p>
+         <p>연락처 : 02-473-5257</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/search/%EC%95%A0%EB%8B%88%EC%B9%B4%20%EC%84%B1%EB%82%B4%EC%A0%90/place/13458809?placePath=/home?entry=pll&from=map&fromNxList=true&fromPanelNum=2&timestamp=202508011311&locale=ko&svcName=map_pcv5&searchText=%EC%95%A0%EB%8B%88%EC%B9%B4%20%EC%84%B1%EB%82%B4%EC%A0%90&searchType=place&c=15.00,0,0,0,dh" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>`,
+        `<h2>애니카 암사점</h2>
+         <p>주소 : 서울 강동구 암사길 68 (암사동)</p>
+         <p>연락처 : 02-427-0614</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/entry/place/13458810?placePath=/home?entry=plt&from=map&fromPanelNum=1&additionalHeight=76&timestamp=202508011313&locale=ko&svcName=map_pcv5&searchType=place&lng=127.1370007&lat=37.5519193&c=15.00,0,0,0,dh" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>`,
+        `<h2>유의사항</h2>
+         <p>✅ 수리비 발생 시 정장계에 전화(필요 시 공문작성)</p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '타이어': [
+        `<h2>타이어 펑크 대처</h2>
+         <p>현장에서는 안전지대로 이동하세요.</p>`,
+        `<h2>견인 업체 연락처</h2>
+         <p>삼성화재(견인) : 1566-1228</p>`,
+        `<h2>타이어 업체 연락처</h2>
+         <p>신영타이어 : 02-477-3335</p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+       '오렌지 주유소(그외 부서)': [
+        `<h2>오렌지 주유소 안내</h2>
+         <p>주소 : 서울특별시 강동구 성안로 102 (성내동)</p>
+         <p>연락처 : 02-484-6165</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/search/%EC%98%A4%EB%A0%8C%EC%A7%80%20%EC%A3%BC%EC%9C%A0%EC%86%8C%20%EC%84%B1%EB%82%B4%EB%8F%99/place/13184649?placePath=/home?entry=pll&from=map&fromNxList=true&fromPanelNum=2&timestamp=202508011100&locale=ko&svcName=map_pcv5&searchText=%EC%98%A4%EB%A0%8C%EC%A7%80%20%EC%A3%BC%EC%9C%A0%EC%86%8C%20%EC%84%B1%EB%82%B4%EB%8F%99&searchType=place&c=15.74,0,0,0,dh" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+       'S-Oil 주유소(천호, 성내, 암사, 교통)': [
+        `<h2>S-Oil 주유소 안내</h2>
+         <p>주소 : 서울 강동구 올림픽로 556 (영파여고 맞은편)</p>
+         <p>연락처 : 02-484-1162</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/entry/place/1514006819?placePath=/home?entry=plt&from=map&fromPanelNum=1&additionalHeight=76&timestamp=202508011108&locale=ko&svcName=map_pcv5&searchType=place&lng=127.1212068&lat=37.5313624&c=15.00,0,0,0,dh" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '간단한 외부 자동세차': [
+        `<h2>간단한 외부 자동세차 안내</h2>
+         <p>업체 : 오렌지 주유소</p>
+         <p>주소 : 서울특별시 강동구 성안로 102 (성내동)</p>
+         <p>연락처 : 02-484-6165</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/search/%EC%98%A4%EB%A0%8C%EC%A7%80%20%EC%A3%BC%EC%9C%A0%EC%86%8C%20%EC%84%B1%EB%82%B4%EB%8F%99/place/13184649?placePath=/home?entry=pll&from=map&fromNxList=true&fromPanelNum=2&timestamp=202508011100&locale=ko&svcName=map_pcv5&searchText=%EC%98%A4%EB%A0%8C%EC%A7%80%20%EC%A3%BC%EC%9C%A0%EC%86%8C%20%EC%84%B1%EB%82%B4%EB%8F%99&searchType=place&c=15.74,0,0,0,dh" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>
+         <p>✅ 반드시 쿠폰 지참(사전에 정장계에서 수령)</p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '실내까지 손세차': [
+        `<h2>실내까지 손세차 안내</h2>
+         <p>업체 : 지성손세차</p>
+         <p>주소 : 서울 강동구 올림픽로 606 (성내동)</p>
+         <p>연락처 : 02-478-0818</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/entry/place/1723111936?placePath=%252Fhome%253Fentry%253Dplt&searchType=place&lng=127.1227034&lat=37.5355703&c=15.00,0,0,0,dh" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>
+         <p>✅ 월 1회 방문</p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '차량 정기·종합(법정)검사': [
+        `<h2>정기·종합(법정)검사 업체 안내</h2>
+         <p>업체 : (주)르노코리아자동차 강동점</p>
+         <p>주소 : 서울 강동구 천호대로 1189 (길동)</p>
+         <p>연락처 : 0507-1381-6202</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/search/%EB%A5%B4%EB%85%B8%EC%BD%94%EB%A6%AC%EC%95%84%EC%84%9C%EB%B9%84%EC%8A%A4%EC%84%BC%ED%84%B0%20%EA%B0%95%EB%8F%99%EC%A0%95%EB%B9%84/place/1714035669?placePath=/home?entry=pll&from=map&fromPanelNum=2&timestamp=202508011119&locale=ko&svcName=map_pcv5&searchText=%EB%A5%B4%EB%85%B8%EC%BD%94%EB%A6%AC%EC%95%84%EC%84%9C%EB%B9%84%EC%8A%A4%EC%84%BC%ED%84%B0%20%EA%B0%95%EB%8F%99%EC%A0%95%EB%B9%84&from=nx&fromNxList=true&searchType=place&c=15.00,0,0,0,dh" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>
+         <p>✅  차량등록증, 결제카드 없이 가능 (사전등록완료)</p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '차량 월간 점검': [
+        `<h2>애니카 성내점</h2>
+         <p>주소 : 서울 강동구 강동대로53길 9 (성내동)</p>
+         <p>연락처 : 02-473-5257</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/search/%EC%95%A0%EB%8B%88%EC%B9%B4%20%EC%84%B1%EB%82%B4%EC%A0%90/place/13458809?placePath=/home?entry=pll&from=map&fromNxList=true&fromPanelNum=2&timestamp=202508011311&locale=ko&svcName=map_pcv5&searchText=%EC%95%A0%EB%8B%88%EC%B9%B4%20%EC%84%B1%EB%82%B4%EC%A0%90&searchType=place&c=15.00,0,0,0,dh" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>
+         <p>✅  월 1회 점검 (매월 25일 전까지)</p>`,
+        `<h2>애니카 암사점</h2>
+         <p>주소 : 서울 강동구 암사길 68 (암사동)</p>
+         <p>연락처 : 02-427-0614</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/entry/place/13458810?placePath=/home?entry=plt&from=map&fromPanelNum=1&additionalHeight=76&timestamp=202508011313&locale=ko&svcName=map_pcv5&searchType=place&lng=127.1370007&lat=37.5519193&c=15.00,0,0,0,dh" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>
+         <p>✅  월 1회 점검 (매월 25일 전까지)</p>`,
+        `<h2>이용시 유의사항 안내</h2>
+         <p>✅ 방문 전 애니카와 일정 조율(불필요한 대기 방지)</p>`,
+
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '정비 및 수리업체': [
+        `<h2>차량 기본 정비 및 수리업체(애니카) 안내</h2>`,
+        `<h2>애니카 성내점</h2>
+         <p>주소 : 서울 강동구 강동대로53길 9 (성내동)</p>
+         <p>연락처 : 02-473-5257</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/search/%EC%95%A0%EB%8B%88%EC%B9%B4%20%EC%84%B1%EB%82%B4%EC%A0%90/place/13458809?placePath=/home?entry=pll&from=map&fromNxList=true&fromPanelNum=2&timestamp=202508011311&locale=ko&svcName=map_pcv5&searchText=%EC%95%A0%EB%8B%88%EC%B9%B4%20%EC%84%B1%EB%82%B4%EC%A0%90&searchType=place&c=15.00,0,0,0,dh" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>`,
+        `<h2>애니카 암사점</h2>
+         <p>주소 : 서울 강동구 암사길 68 (암사동)</p>
+         <p>연락처 : 02-427-0614</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/entry/place/13458810?placePath=/home?entry=plt&from=map&fromPanelNum=1&additionalHeight=76&timestamp=202508011313&locale=ko&svcName=map_pcv5&searchType=place&lng=127.1370007&lat=37.5519193&c=15.00,0,0,0,dh" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>`,
+
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '타이어업체': [
+        `<h2>타이어업체(신영) 안내</h2>
+         <p>업체 : 타이어신영</p>
+         <p>주소 : 서울 강동구 양재대로102길 32 (둔촌동)</p>
+         <p>연락처 : 0507-1396-0527</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/search/%ED%83%80%EC%9D%B4%EC%96%B4%EC%8B%A0%EC%98%81/place/12965803?placePath=?entry=pll&from=nx&fromNxList=true&searchType=place&c=15.00,0,0,0,dh" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>
+         <p>✅  애니카에서 타이어 교체필요 판정 시 타이어신영 방문</p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '24년 이전': [
+        `<h2>경광등, 앰프 수리 안내</h2>
+         <p>업체 : 현도산업</p>
+         <p>주소 : 경기 구리시 벌말로70번길 83 (구리시)</p>
+         <p>연락처 : 0507-1428-3659</p>
+         <p>✅  전화 요청 시 업체에서 방문 수리</p>
+         <p>✅  사전에 정장계와 협의</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/search/%ED%98%84%EB%8F%84%EC%82%B0%EC%97%85%20031-594/place/1578293584?c=15.00,0,0,0,dh&isCorrectAnswer=true&placePath=/home?from=map&fromPanelNum=1&additionalHeight=76&timestamp=202508011323&locale=ko&svcName=map_pcv5&searchText=%ED%98%84%EB%8F%84%EC%82%B0%EC%97%85%20031-594" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '25년': [
+        `<h2>경광등, 앰프 수리 안내</h2>
+         <p>업체 : 성화기술</p>
+         <p>주소 : 서울 강서구 국회대로 161 성원빌딩 (강서구)</p>
+         <p>연락처 : 02-2662-8717</p>
+         <p>✅  전화 요청 시 업체에서 방문 수리</p>
+         <p>✅  사전에 정장계와 협의</p>
+         <p>지도 : 
+           <a href="https://map.naver.com/p/search/%EC%84%B1%ED%99%94%EA%B8%B0%EC%88%A0/place/18392857?placePath=/home?entry=pll&from=map&fromNxList=true&fromPanelNum=2&timestamp=202508011341&locale=ko&svcName=map_pcv5&searchText=%EC%84%B1%ED%99%94%EA%B8%B0%EC%88%A0&searchType=place&c=15.00,0,0,0,dh" target="_blank">
+             네이버 지도에서 보기
+           </a>
+         </p>`,
+        `<h2>문의</h2>
+         <p>정보화장비계: 02-3449-7278</p>`
+      ],
+      '112태블릿업체': [
+        `<h2>태블릿 고장 시 처리 절차</h2>
+         <p>업체(SK알파코) 유지보수팀 연락</p>
+         <p>연락처 : 02-2163-5777</p>`,
+        `<h2>문의</h2>
+         <p>범예계: 02-3449-7284</p>`
+      ],
+
+    };
+
+    let historyStack = [];
+    const mainMenuEl = document.getElementById('mainMenu'),
+          submenuEl  = document.getElementById('submenuContainer'),
+          contentEl  = document.getElementById('contentContainer'),
+          navFooter  = document.getElementById('navFooter'),
+          backBtn    = document.getElementById('backBtn'),
+          homeBtn    = document.getElementById('homeBtn');
+
+    function showMain(){
+      mainMenuEl.classList.remove('hidden');
+      submenuEl.classList.add('hidden');
+      contentEl.innerHTML='';
+      navFooter.classList.add('hidden');
+    }
+    function showSubMenu(key){
+      mainMenuEl.classList.add('hidden');
+      submenuEl.innerHTML = menuData[key]
+        .map(x=>`<button class="sub-btn">${x}</button>`).join('');
+      submenuEl.classList.remove('hidden');
+      contentEl.innerHTML=''; navFooter.classList.remove('hidden');
+    }
+    function showNested(sub){
+      mainMenuEl.classList.add('hidden');
+      submenuEl.innerHTML = subMenuData[sub]
+        .map(x=>`<button class="sub-btn">${x}</button>`).join('');
+      submenuEl.classList.remove('hidden');
+      contentEl.innerHTML=''; navFooter.classList.remove('hidden');
+    }
+    function showContent(item){
+      mainMenuEl.classList.add('hidden');
+      submenuEl.classList.add('hidden');
+      const cards = contentData[item] || [`<h2>${item}</h2><p>'${item}' 기본 설명</p>`];
+      contentEl.innerHTML = cards
+        .map(html=>`<div class="content-card">${html}</div>`).join('');
+      navFooter.classList.remove('hidden');
+    }
+    function goBack(){
+      if(historyStack.length<=1) return showMain();
+      historyStack.pop();
+      const prev = historyStack.at(-1);
+      if(prev.view==='main') showMain();
+      else if(prev.view==='sub') showSubMenu(prev.key);
+      else showNested(prev.sub);
+    }
+    function goHome(){
+      historyStack=[]; showMain();
+    }
+
+    showMain();
+    mainMenuEl.addEventListener('click', e => {
+      if(e.target.tagName==='BUTTON'){
+        const key=e.target.dataset.key;
+        historyStack=[{view:'main'},{view:'sub',key}];
+        showSubMenu(key);
+      }
+    });
+    submenuEl.addEventListener('click', e => {
+      if(e.target.tagName==='BUTTON'){
+        const txt=e.target.textContent, last=historyStack.at(-1);
+        if(last.view==='sub'){
+          historyStack.push({view:'nested',sub:txt,parent:last.key});
+          subMenuData[txt]?showNested(txt):showContent(txt);
+        } else {
+          historyStack.push({view:'content',item:txt});
+          showContent(txt);
+        }
+      }
+    });
+    backBtn.addEventListener('click', goBack);
+    homeBtn.addEventListener('click', goHome);
+  </script>
+</body>
+</html>
